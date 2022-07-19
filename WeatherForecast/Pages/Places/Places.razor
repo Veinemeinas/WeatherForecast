@@ -1,0 +1,89 @@
+﻿@using WeatherForecast.Models
+@using WeatherForecast.Repositories
+@using WeatherForecast.Services
+
+@page "/places"
+@inject PlacesService placesService
+@inject VisitedPlaceRepository visitedPlaceRepository;
+@inject FavoritePlacesService _favoritePlacesService;
+
+<label for="search_places">Vietovės paieška:&nbsp;</label>
+<input type="search" autocomplete="off" id="search_places" @bind-value="SearchPlace" @bind-value:event="oninput" />
+
+@if (PlaceList == null)
+{
+	<div class="loader"></div>
+}
+else
+{
+	int limit = 0;
+	<h5 class="fw-bold mt-3">Įsimintos vietos</h5>
+	<div class="places_container">
+		@foreach (var place in MyFavoritePlaces)
+		{
+			if (limit < 4)
+			{
+				<PlaceComponent Place="@place"></PlaceComponent>
+				limit++;
+			}
+		}
+	</div>
+
+	limit = 0;
+
+	<h5 class="fw-bold mt-3">Populiariausios vietos</h5>
+	<div class="places_container">
+		
+		@foreach (var place in MostVisitedPlaces)
+		{
+			if (limit < 4)
+			{
+				<PlaceComponent Place="@place"></PlaceComponent>
+				limit++;
+			}
+		}
+	</div>
+
+	limit = 0;
+
+	<h5 class="fw-bold mt-3">Vietovės</h5>
+	<div class="places_container">
+		@foreach (var place in PlaceList)
+		{
+			SearchPlace = SearchPlace.ToLower();
+			if ((place.Code.Contains(SearchPlace) || place.Name.ToLower().Contains(SearchPlace) || place.CountryCode.ToLower().Contains(SearchPlace)) && limit < 30)
+			{
+				<PlaceComponent Place="@place"></PlaceComponent>
+				limit++;
+			}
+		}
+	</div>
+}
+
+@code {
+	public List<Place>? PlaceList { get; set; }
+	private string SearchPlace { get; set; } = string.Empty;
+	public List<Place> MyFavoritePlaces { get; set; } = new List<Place>();
+	public List<Place> MostVisitedPlaces { get; set; } = new List<Place>();
+
+	protected override async Task OnInitializedAsync()
+	{
+		PlaceList = await placesService.GetPlaces();
+
+		var myFavoritePlaces = await _favoritePlacesService.GetFavoritePlaces();
+		if (myFavoritePlaces != null)
+		{
+			foreach (var place in myFavoritePlaces)
+			{
+				MyFavoritePlaces.Add(PlaceList.First(p => p.Code == place));
+			}
+		}
+
+		var mostVisitedPlaces = await visitedPlaceRepository.GetVisitedPlacesAsync();
+		foreach (var place in mostVisitedPlaces)
+		{
+			var placeModel = PlaceList.First(p => p.Code == place.Code);
+			MostVisitedPlaces.Add(placeModel);
+		}
+	}
+}

@@ -1,0 +1,48 @@
+﻿@using WeatherForecast.Repositories
+@using WeatherForecast.Services
+@using WeatherForecast.Models
+
+@page "/placeforecast/{placeCode}"
+
+@inject PlacesService placesService
+@inject VisitedPlaceRepository visitedPlaceRepository;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+
+@if (Forecast == null)
+{
+	<div class="loader"></div>
+}
+else
+{
+	<PlaceForecastComponent Forecast="@Forecast"></PlaceForecastComponent>
+}
+
+@code {
+	[Parameter]
+	public string PlaceCode { get; set; }
+	public Forecast Forecast { get; set; }
+	Dictionary<string, string> conditionCode = new Dictionary<string, string>() { { "clear", "Giedra" }, { "isolated-clouds", "Mažai debesuota" }, { "scattered-clouds", "Debesuota su pragiedruliais" }, { "overcast", "Debesuota" }, { "light-rain", "Nedidelis lietus" }, { "moderate-rain", "Lietus" }, { "heavy-rain", "Smarkus lietus" }, { "sleet", "Šlapdriba" }, { "light-snow", "Nedidelis sniegas" }, { "moderate-snow", "Sniegas" }, { "heavy-snow", "Smarkus sniegas" }, { "fog", "Rūkas" }, { "na", "-" } };
+
+	protected override async Task OnInitializedAsync()
+	{
+		await visitedPlaceRepository.AddVisitedPlace(PlaceCode);
+		Forecast = await placesService.GetPlaceForecast(PlaceCode);
+
+		var myVisitedPlaces = await localStorage.GetItemAsync<List<string>>("MyFavoritePlaces");
+		if (myVisitedPlaces == null)
+		{
+			List<string> myNewVisitedPlaces = new List<string>() { PlaceCode };
+			await localStorage.SetItemAsync<List<string>>("MyFavoritePlaces", myNewVisitedPlaces);
+		}
+		else if (!myVisitedPlaces.Contains(PlaceCode))
+		{
+			myVisitedPlaces.Add(PlaceCode);
+			await localStorage.SetItemAsync<List<string>>("MyFavoritePlaces", myVisitedPlaces);
+		}
+		else
+		{
+			myVisitedPlaces.Remove(PlaceCode);
+			myVisitedPlaces.Add(PlaceCode);
+		}
+	}
+}

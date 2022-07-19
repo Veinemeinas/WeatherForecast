@@ -1,0 +1,23 @@
+﻿@using WeatherForecast.Models
+
+<section class="place_container">
+	<a href="@($"/placeforecast/{Place.Code}")">
+		<div class="padding">
+			<div class="header">
+				<div>@Place.Name</div>
+			</div>
+			<div class="footer">
+				<div>@Place.AdministrativeDivision,&nbsp;</div>
+				<div>@Place.CountryCode</div>
+			</div>
+		</div>
+	</a>
+</section>
+
+@code {
+	[Parameter]
+	public Place? Place { get; set; }
+
+	[Parameter]
+	public List<Place> Favorite { get; set; } = new List<Place>();
+}

@@ -1,0 +1,80 @@
+﻿
+
+<section class="d-flex justify-content-between">
+	<div class="col-5">
+		<h3>Vietovė: @Forecast.PlaceInfo.Name</h3>
+		<div>Cordinatės:</div>
+		<div>Platuma: @Forecast.PlaceInfo.Coordinates.Latitude</div>
+		<div>Ilguma: @Forecast.PlaceInfo.Coordinates.Longitude</div>
+	</div>
+	<div class="col-2"><img src="@getImage()" class="img-fluid" style="max-width:200px" /></div>
+</section>
+
+<table class="table">
+	<tbody>
+		<tr>
+			<td>Prognožės laikas</td>
+			<td>@Forecast.ForecastTimestamps[Time].ForecastTimeUtc</td>
+		</tr>
+		<tr>
+
+			<td>Oro temperatūna</td>
+			<td>@Forecast.ForecastTimestamps[Time].AirTemperature &deg;C</td>
+		</tr>
+		<tr>
+			<td>Vėjo greitis</td>
+			<td>@Forecast.ForecastTimestamps[Time].WindSpeed m/s</td>
+		</tr>
+		<tr>
+			<td>Vėjo gūsiai</td>
+			<td>@Forecast.ForecastTimestamps[Time].WindGust m/s</td>
+		</tr>
+		<tr>
+			<td>Vėjo kryptis</td>
+			<td>
+				<div style="transform: rotate(@getWindDirection()); display: inline-block;"><i class=" fa-solid fa-arrow-down-long"></i></div>
+			</td>
+		</tr>
+		<tr>
+			<td>Debesuotumas</td>
+			<td>@Forecast.ForecastTimestamps[Time].CloudCover %</td>
+		</tr>
+		<tr>
+			<td>Slėgis jūros lygyje</td>
+			<td>@Forecast.ForecastTimestamps[Time].SeaLevelPressure hPa</td>
+		</tr>
+		<tr>
+			<td>Santykinė oro drėgmė</td>
+			<td>@Forecast.ForecastTimestamps[Time].RelativeHumidity %</td>
+		</tr>
+		<tr>
+			<td>Kritulių kiekis</td>
+			<td>@Forecast.ForecastTimestamps[Time].TotalPrecipitation mm.</td>
+		</tr>
+		<tr>
+			<td>Oro salygos</td>
+			<td>@conditionCode[Forecast.ForecastTimestamps[Time].ConditionCode]</td>
+		</tr>
+	</tbody>
+</table>
+
+<div>
+	<input type="range" list="tickmarks" class="time form-range" min="0" max="@(Forecast.ForecastTimestamps.Count()-1)" @bind-value="Time" @bind-value:event="oninput" />
+</div>
+
+@code {
+	[Parameter]
+	public Forecast Forecast { get; set; }
+	public int Time { get; set; }
+	Dictionary<string, string> conditionCode = new Dictionary<string, string>() { { "clear", "Giedra" }, { "isolated-clouds", "Mažai debesuota" }, { "scattered-clouds", "Debesuota su pragiedruliais" }, { "overcast", "Debesuota" }, { "light-rain", "Nedidelis lietus" }, { "moderate-rain", "Lietus" }, { "heavy-rain", "Smarkus lietus" }, { "sleet", "Šlapdriba" }, { "light-snow", "Nedidelis sniegas" }, { "moderate-snow", "Sniegas" }, { "heavy-snow", "Smarkus sniegas" }, { "fog", "Rūkas" }, { "na", "-" } };
+
+	string getImage()
+	{
+		return $"images/{Forecast.ForecastTimestamps[Time].ConditionCode}.png";
+	}
+
+	string getWindDirection()
+	{
+		return $"{Forecast.ForecastTimestamps[Time].WindDirection}deg";
+	}
+}
